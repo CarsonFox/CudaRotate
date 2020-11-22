@@ -11,7 +11,7 @@ int main() {
 
     for (int i = 0; i < IMAGE_SIZE; i++) {
         for (int j = 0; j < IMAGE_SIZE; j++) {
-            outputImage->at(i).at(j) = inputImage->at(j).at(i);
+            (*outputImage)[i][j] = (*inputImage)[j][i];
         }
     }
 
