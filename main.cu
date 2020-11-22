@@ -15,7 +15,7 @@ int main() {
         }
     }
 
-    std::cout << *outputImage
+    std::cout << *outputImage;
 
     return 0;
 }
