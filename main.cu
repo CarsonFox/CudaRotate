@@ -32,7 +32,7 @@ int main() {
 
     checkErrors(cudaDeviceSynchronize());
 
-    std::cout << *hostImage;
+//    std::cout << *hostImage;
 
     delete hostImage;
     cudaFree(devImageIn);
