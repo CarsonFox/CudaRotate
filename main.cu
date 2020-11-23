@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 
 #include "Image.hpp"
 
@@ -17,8 +18,8 @@ void checkErrors(cudaError_t err) {
 
 int main() {
     //Read image from stdin
-    Image hostImage;
-    std::cin >> hostImage;
+    Image hostImageIn, hostImageOut;
+    std::cin >> hostImageIn;
 
     //Allocate space for input and output images on device
     Image *devImageIn, *devImageOut;
@@ -26,19 +27,22 @@ int main() {
     checkErrors(cudaMalloc(&devImageOut, sizeof(Image)));
 
     //Send input image to device
-    checkErrors(cudaMemcpy(devImageIn, &hostImage, sizeof(Image), cudaMemcpyHostToDevice));
+    checkErrors(cudaMemcpy(devImageIn, &hostImageIn, sizeof(Image), cudaMemcpyHostToDevice));
 
     //Call kernel to rotate image
     rotateNaive<<<1, IMAGE_SIZE>>>((Pixel *)devImageIn, (Pixel *)devImageOut);
     checkErrors(cudaPeekAtLastError());
 
     //Send rotated image back to host
-    checkErrors(cudaMemcpy(&hostImage, devImageOut, sizeof(Image), cudaMemcpyDeviceToHost));
+    checkErrors(cudaMemcpy(&hostImageOut, devImageOut, sizeof(Image), cudaMemcpyDeviceToHost));
 
     checkErrors(cudaDeviceSynchronize());
 
+    //Check that the image was rotated
+    assert(isRotated(hostImageIn, hostImageOut));
+
     //Write rotated image to stdout
-    std::cout << hostImage;
+//    std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);

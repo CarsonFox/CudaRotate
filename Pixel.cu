@@ -13,3 +13,11 @@ std::ostream &operator<<(std::ostream &os, const Pixel &pixel) {
     os.put(pixel.b);
     return os;
 }
+
+bool operator==(const Pixel &lhs, const Pixel &rhs) {
+    return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b;
+}
+
+bool operator!=(const Pixel &lhs, const Pixel &rhs) {
+    return !(lhs == rhs);
+}
