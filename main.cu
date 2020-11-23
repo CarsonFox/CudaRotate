@@ -2,18 +2,27 @@
 
 #include "Image.hpp"
 
+__global__ void doNothing() {}
+
+void checkErrors(cudaError_t err) {
+    if (err != cudaSuccess) {
+        std::cerr << cudaGetErrorName(err) << ": " << cudaGetErrorString(err) << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+}
+
 int main() {
     auto inputImage = new Image(), outputImage = new Image();
     Image *d_image;
-    cudaMalloc(&d_image, sizeof(Image));
+    checkErrors(cudaMalloc(&d_image, sizeof(Image)));
 
     std::cin >> *inputImage;
 
-    cudaMemcpy(d_image, inputImage, sizeof(Image), cudaMemcpyHostToDevice);
+    checkErrors(cudaMemcpy(d_image, inputImage, sizeof(Image), cudaMemcpyHostToDevice));
+    doNothing<<<1,1>>>();
+    checkErrors(cudaMemcpy(outputImage, d_image, sizeof(Image), cudaMemcpyDeviceToHost));
 
-    //Kernel
-
-    cudaMemcpy(outputImage, d_image, sizeof(Image), cudaMemcpyDeviceToHost);
+    checkErrors(cudaDeviceSynchronize());
 
     std::cout << *outputImage;
 
