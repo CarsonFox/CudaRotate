@@ -4,9 +4,9 @@
 #include "Image.hpp"
 
 __global__ void rotateNaive(Pixel *in, Pixel *out) {
-    for (int i = 0; i < IMAGE_SIZE; i++) {
-        out[i * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + i];
-    }
+    const auto i = blockIdx.x * 32 + threadIdx.x;
+    const auto j = blockIdx.y * 32 + threadIdx.y;
+    out[j * 32 + i] = in[i * 32 + j];
 }
 
 void checkErrors(cudaError_t err) {
@@ -29,8 +29,11 @@ int main() {
     //Send input image to device
     checkErrors(cudaMemcpy(devImageIn, &hostImageIn, sizeof(Image), cudaMemcpyHostToDevice));
 
+    dim3 blockDim(32, 32, 1);
+    dim3 gridDim(32, 32, 1);
+
     //Call kernel to rotate image
-    rotateNaive<<<1, IMAGE_SIZE>>>((Pixel *)devImageIn, (Pixel *)devImageOut);
+    rotateNaive<<<gridDim, blockDim>>>((Pixel *)devImageIn, (Pixel *)devImageOut);
     checkErrors(cudaPeekAtLastError());
 
     //Send rotated image back to host
