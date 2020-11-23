@@ -7,9 +7,7 @@ void naive();
 void tiled();
 
 __global__ void rotateNaive(Pixel *in, Pixel *out) {
-    for (int i = 0; i < IMAGE_SIZE; i++) {
-        out[i * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + i];
-    }
+    out[threadIdx.x * 1024 + blockIdx.x] = {1, 1, 1};
 }
 
 void checkErrors(cudaError_t err) {
@@ -40,7 +38,7 @@ void naive() {
     checkErrors(cudaMemcpy(devImageIn, &hostImageIn, sizeof(Image), cudaMemcpyHostToDevice));
 
     //Call kernel to rotate image
-    rotateNaive<<<1, IMAGE_SIZE>>>((Pixel *)devImageIn, (Pixel *)devImageOut);
+    rotateNaive<<<IMAGE_SIZE, IMAGE_SIZE>>>((Pixel *)devImageIn, (Pixel *)devImageOut);
     checkErrors(cudaPeekAtLastError());
 
     //Send rotated image back to host
@@ -52,7 +50,7 @@ void naive() {
     assert(isRotated(hostImageIn, hostImageOut));
 
     //Write rotated image to stdout
-    std::cout << hostImageOut;
+//    std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);
