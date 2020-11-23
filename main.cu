@@ -2,8 +2,10 @@
 
 #include "Image.hpp"
 
-__global__ void echo() {
-    printf("x: %d\ty: %d\n", threadIdx.x, threadIdx.y);
+__global__ void rotateNaive(Pixel *in, Pixel *out) {
+    for (int i = 0; i < IMAGE_SIZE; i++) {
+        out[i * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + i];
+    }
 }
 
 void checkErrors(cudaError_t err) {
@@ -14,22 +16,26 @@ void checkErrors(cudaError_t err) {
 }
 
 int main() {
-    auto inputImage = new Image(), outputImage = new Image();
-    Image *d_image;
-    checkErrors(cudaMalloc(&d_image, sizeof(Image)));
+    auto hostImage = new Image();
+    std::cin >> *hostImage;
 
-    std::cin >> *inputImage;
+    Image *devImageIn, *devImageOut;
+    checkErrors(cudaMalloc(&devImageIn, sizeof(Image)));
+    checkErrors(cudaMalloc(&devImageOut, sizeof(Image)));
 
-    checkErrors(cudaMemcpy(d_image, inputImage, sizeof(Image), cudaMemcpyHostToDevice));
-    echo<<<4,4>>>();
-    checkErrors(cudaMemcpy(outputImage, d_image, sizeof(Image), cudaMemcpyDeviceToHost));
+    checkErrors(cudaMemcpy(devImageIn, hostImage, sizeof(Image), cudaMemcpyHostToDevice));
+
+    rotateNaive<<<1, IMAGE_SIZE>>>((Pixel *)devImageIn, (Pixel *)devImageOut);
+    checkErrors(cudaPeekAtLastError());
+
+    checkErrors(cudaMemcpy(hostImage, devImageIn, sizeof(Image), cudaMemcpyDeviceToHost));
 
     checkErrors(cudaDeviceSynchronize());
 
-    std::cout << *outputImage;
+    std::cout << *hostImage;
 
-    delete inputImage;
-    delete outputImage;
-    cudaFree(d_image);
+    delete hostImage;
+    cudaFree(devImageIn);
+
     return 0;
 }
