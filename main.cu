@@ -3,6 +3,9 @@
 
 #include "Image.hpp"
 
+void naive();
+void tiled();
+
 __global__ void rotateNaive(Pixel *in, Pixel *out) {
     for (int i = 0; i < IMAGE_SIZE; i++) {
         out[i * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + i];
@@ -17,6 +20,13 @@ void checkErrors(cudaError_t err) {
 }
 
 int main() {
+    naive();
+}
+
+void tiled() {
+}
+
+void naive() {
     //Read image from stdin
     Image hostImageIn, hostImageOut;
     std::cin >> hostImageIn;
@@ -42,11 +52,9 @@ int main() {
     assert(isRotated(hostImageIn, hostImageOut));
 
     //Write rotated image to stdout
-//    std::cout << hostImageOut;
+    std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);
     cudaFree(devImageOut);
-
-    return 0;
 }
