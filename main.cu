@@ -7,7 +7,7 @@ void naive();
 void tiled();
 
 __global__ void rotateNaive(Pixel *in, Pixel *out) {
-    out[threadIdx.x * 1024 + blockIdx.x] = {1, 1, 1};
+    out[blockIdx.x * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + blockIdx.x];
 }
 
 void checkErrors(cudaError_t err) {
