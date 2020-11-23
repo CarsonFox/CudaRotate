@@ -2,7 +2,9 @@
 
 #include "Image.hpp"
 
-__global__ void doNothing() {}
+__global__ void echo() {
+    printf("x: %d\ty: %d\n", threadIdx.x, threadIdx.y);
+}
 
 void checkErrors(cudaError_t err) {
     if (err != cudaSuccess) {
@@ -19,7 +21,7 @@ int main() {
     std::cin >> *inputImage;
 
     checkErrors(cudaMemcpy(d_image, inputImage, sizeof(Image), cudaMemcpyHostToDevice));
-    doNothing<<<1,1>>>();
+    echo<<<4,4>>>();
     checkErrors(cudaMemcpy(outputImage, d_image, sizeof(Image), cudaMemcpyDeviceToHost));
 
     checkErrors(cudaDeviceSynchronize());
