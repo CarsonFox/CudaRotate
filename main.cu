@@ -82,7 +82,7 @@ void tiled() {
     assert(isRotated(hostImageIn, hostImageOut));
 
     //Write rotated image to stdout
-    std::cout << hostImageOut;
+    //std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);
@@ -116,7 +116,7 @@ void naive() {
     assert(isRotated(hostImageIn, hostImageOut));
 
     //Write rotated image to stdout
-    //std::cout << hostImageOut;
+    std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);
