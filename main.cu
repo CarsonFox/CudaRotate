@@ -42,8 +42,7 @@ __global__ void readFromTiles(Pixel *tiles, Pixel *out) {
     auto out_j = blockIdx.x * blockDim.y + threadIdx.y;
     auto out_index = out_i + out_j * IMAGE_SIZE;
 
-//    out[out_index] = tiles[tile_index];
-    out[out_index] = {1, 1, 1};
+    out[out_index] = tiles[tile_index];
 }
 
 void tiled() {
