@@ -9,18 +9,19 @@ void naive();
 void tiled();
 void checkErrors(cudaError_t err);
 
-//Size of a tile in pixels (square root of image size)
-constexpr int tileSize = 32;
-
 int main() {
     tiled();
-    //naive();
+    naive();
 }
 
+//Literal transpose operation
 __global__ void rotateNaive(Pixel *in, Pixel *out) {
     out[blockIdx.x * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + blockIdx.x];
 }
 
+//Transpose using tiles to decrease distance between strides.
+//First transpose the pixels within a tile,
+//then transpose the tiles themselves.
 __global__ void writeToTiles(Pixel *in, Pixel *tiles) {
      auto in_i = blockIdx.x * blockDim.x + threadIdx.x;
      auto in_j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -62,7 +63,7 @@ void tiled() {
     checkErrors(cudaMalloc(&tiles, sizeof(Image)));
 
     //Dimensions of grid and tiles
-    const dim3 dim(tileSize, tileSize, 1);
+    const dim3 dim(32, 32, 1);
 
     //Send input image to device
     checkErrors(cudaMemcpy(devImageIn, &hostImageIn, sizeof(Image), cudaMemcpyHostToDevice));
@@ -81,7 +82,7 @@ void tiled() {
     assert(isRotated(hostImageIn, hostImageOut));
 
     //Write rotated image to stdout
-    //std::cout << hostImageOut;
+    std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);
