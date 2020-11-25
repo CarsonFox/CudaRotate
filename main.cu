@@ -31,14 +31,11 @@ void tiled() {
     checkErrors(cudaMalloc(&devImageIn, sizeof(Image)));
     checkErrors(cudaMalloc(&devImageOut, sizeof(Image)));
 
-    //Allocate tiles for each block
-    constexpr int numTiles = 32 * 32;
-    Pixel **tiles;
-    checkErrors(cudaMalloc(&tiles, numTiles));
-
-    for (int i = 0; i < numTiles; i++) {
-        checkErrors(cudaMalloc(tiles + i, tileSize * tileSize));
-    }
+    //Allocate tiles for each block.
+    //Although memory will be allocated contiguously, treating it like
+    //an array of tiles will result in smaller strides.
+    Pixel *tiles;
+    checkErrors(cudaMalloc(&tiles, sizeof(Image)));
 
     //Dimensions of grid and tiles
     const dim3 dim(tileSize, tileSize, 1);
@@ -64,8 +61,6 @@ void tiled() {
     //Cleanup
     cudaFree(devImageIn);
     cudaFree(devImageOut);
-    for (int i = 0; i < numTiles; i++)
-        cudaFree(tiles[i]);
     cudaFree(tiles);
 }
 
