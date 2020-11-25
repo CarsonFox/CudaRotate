@@ -6,8 +6,8 @@
 #include "Image.hpp"
 
 void naive();
-
 void tiled();
+void checkErrors(cudaError_t err);
 
 //Size of a tile in pixels (square root of image size)
 constexpr int tileSize = 32;
@@ -21,13 +21,6 @@ __global__ void rotateNaive(Pixel *in, Pixel *out) {
     out[blockIdx.x * IMAGE_SIZE + threadIdx.x] = in[threadIdx.x * IMAGE_SIZE + blockIdx.x];
 }
 
-void checkErrors(cudaError_t err) {
-    if (err != cudaSuccess) {
-        std::cerr << cudaGetErrorName(err) << ": " << cudaGetErrorString(err) << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-}
-
 void tiled() {
     //Read image from stdin
     Image hostImageIn, hostImageOut;
@@ -39,10 +32,13 @@ void tiled() {
     checkErrors(cudaMalloc(&devImageOut, sizeof(Image)));
 
     //Allocate tiles for each block
-    const int numBlocks = IMAGE_SIZE / tileSize;
-    std::vector<Pixel *> tiles(numBlocks, nullptr);
-    for (Pixel *tile : tiles)
-        checkErrors(cudaMalloc(&tile, tileSize * tileSize));
+    constexpr int numTiles = 32 * 32;
+    Pixel **tiles;
+    checkErrors(cudaMalloc(&tiles, numTiles));
+
+    for (int i = 0; i < numTiles; i++) {
+        checkErrors(cudaMalloc(tiles + i, tileSize * tileSize));
+    }
 
     //Dimensions of grid and tiles
     const dim3 dim(tileSize, tileSize, 1);
@@ -68,8 +64,9 @@ void tiled() {
     //Cleanup
     cudaFree(devImageIn);
     cudaFree(devImageOut);
-    for (Pixel *tile : tiles)
-        cudaFree(tile);
+    for (int i = 0; i < numTiles; i++)
+        cudaFree(tiles[i]);
+    cudaFree(tiles);
 }
 
 void naive() {
@@ -103,4 +100,11 @@ void naive() {
     //Cleanup
     cudaFree(devImageIn);
     cudaFree(devImageOut);
+}
+
+void checkErrors(cudaError_t err) {
+    if (err != cudaSuccess) {
+        std::cerr << cudaGetErrorName(err) << ": " << cudaGetErrorString(err) << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 }
