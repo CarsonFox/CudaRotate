@@ -11,7 +11,7 @@ void checkErrors(cudaError_t err);
 
 int main() {
     tiled();
-    naive();
+    //naive();
 }
 
 //Literal transpose operation
@@ -82,7 +82,7 @@ void tiled() {
     assert(isRotated(hostImageIn, hostImageOut));
 
     //Write rotated image to stdout
-    //std::cout << hostImageOut;
+    std::cout << hostImageOut;
 
     //Cleanup
     cudaFree(devImageIn);
